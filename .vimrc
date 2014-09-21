@@ -7,8 +7,11 @@ set mouse=a
 " Set Line height
 set lsp=5
 
+set nonumber
 " Show relative row number for quick motion
-set relativenumber
+"set relativenumber
+"autocmd vimenter * :set numberwidth=1
+"hi LineNr ctermfg=white ctermbg=brown
 
 " Change Vim cursor shape in command mode and insert mode
 let &t_SI = "\<Esc>]50;CursorShape=1\x7"
@@ -32,12 +35,10 @@ let g:mapleader = ";"
 " Fast saving
 nmap <leader>w :w!<cr>
 
-"reload the VIMRC file after edit .vimrc
-nnoremap <leader>sv :source $MYVIMRC<cr>
 
 " :W sudo saves the file 
 " (useful for handling the permission-denied error)
-command W w !sudo tee % > /dev/null
+cmap W w !sudo tee > /dev/null %
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => VIM user interface
@@ -94,11 +95,9 @@ set t_vb=
 set tm=500
 
 " Add a bit extra margin to the left
-set foldcolumn=1
-
-
-
-
+set foldcolumn=4
+hi foldcolumn ctermbg=none
+hi NonText ctermfg=red
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Colors and Fonts
@@ -106,15 +105,21 @@ set foldcolumn=1
 " Enable syntax highlighting
 syntax enable
 set background=light
-"colorscheme solarized
+colorscheme solarized
+
+"Verticle split char
+set fillchars-=vert:\|  
+
+"hide tab bar when vim start
+autocmd vimenter * :set showtabline=0
+
+hi VertSplit ctermfg=red ctermbg=none cterm=none
 
 " Set utf8 as standard encoding and en_US as the standard language
 set encoding=utf8
 
 " Use Unix as the standard file type
 set ffs=unix,dos,mac
-
-
 
 set guifont=Source\ Code\ Pro\ Light:h10
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -124,7 +129,6 @@ set guifont=Source\ Code\ Pro\ Light:h10
 set nobackup
 set nowb
 set noswapfile
-
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Text, tab and indent related
@@ -155,7 +159,6 @@ set wrap "Wrap lines
 " Super useful! From an idea by Michael Naumann
 vnoremap <silent> * :call VisualSelection('f', '')<CR>
 vnoremap <silent> # :call VisualSelection('b', '')<CR>
-
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Moving around, tabs, windows and buffers
@@ -220,7 +223,7 @@ set viminfo^=%
 set laststatus=2
 
 " Format the status line
-set statusline=\ %{HasPaste()}%F%m%r%h\ %w\ \ CWD:\ %r%{getcwd()}%h\ \ \ Line:\ %l
+set statusline=\ %{HasPaste()}%m%r%h\ \ \ %=\ %c\ \ \ Line:\ %l/%L\ %y
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Editing mappings
@@ -275,7 +278,7 @@ vnoremap <silent> <leader>r :call VisualSelection('replace', '')<CR>
 " To go to the previous search results do:
 "   <leader>p
 "
-map <leader>cc :botright cope<cr>
+"map <leader>cc :botright cope<cr>
 map <leader>co ggVGy:tabnew<cr>:set syntax=qf<cr>pgg
 map <leader>n :cn<cr>
 map <leader>p :cp<cr>
@@ -370,6 +373,28 @@ function! <SID>BufcloseCloseIt()
    endif
 endfunction
 
+" Window resizing mappings /*{{{*/
+nnoremap <S-Up> :normal <c-r>=Resize('+')<CR><CR>
+nnoremap <S-Down> :normal <c-r>=Resize('-')<CR><CR>
+nnoremap <S-Left> :normal <c-r>=Resize('<')<CR><CR>
+nnoremap <S-Right> :normal <c-r>=Resize('>')<CR><CR>
+
+function! Resize(dir)
+  if ('+' == a:dir ) 
+    return "5\<c-v>\<c-w>-"
+  elseif ('-' == a:dir)
+    return "5\<c-v>\<c-w>+"
+  elseif ('<' == a:dir ) 
+    return "5\<c-v>\<c-w><"
+  elseif ('>' == a:dir )
+    return "5\<c-v>\<c-w>>"
+  else
+    echo "oops. check your ~/.vimrc"
+    return ""
+  endif
+endfunction
+" /*}}}*/ 
+
 set nocompatible              " be iMproved, required
 filetype off                  " required
 
@@ -381,7 +406,6 @@ call vundle#begin()
 
 " let Vundle manage Vundle, required
 Plugin 'gmarik/Vundle.vim'
-Plugin 'maciakl/vim-neatstatus'
 Plugin 'ctrlp.vim'
 Plugin 'Lokaltog/vim-easymotion'
 Plugin 'maksimr/vim-jsbeautify'
@@ -398,6 +422,8 @@ Plugin 'godlygeek/tabular'
 Plugin 'majutsushi/tagbar'
 Plugin 'marijnh/tern_for_vim'
 Plugin 'ramitos/jsctags'
+Plugin 'fidian/hexmode'
+Plugin 'vim-scripts/loremipsum'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
@@ -409,12 +435,18 @@ autocmd vimenter * if !argc() | NERDTree | endif
 map <F3> :NERDTreeToggle<CR>
 autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
 let NERDTreeShowHidden=1 
+let NERDTreeStatusline="%{matchstr(getline('.'), '\\s\\zs\\w\\(.*\\)')}"
 
 " JsBeautify Config
 map <c-f> :call JsBeautify()<cr>
 autocmd FileType javascript noremap <buffer>  <c-f> :call JsBeautify()<cr>
 autocmd FileType html noremap <buffer> <c-f> :call HtmlBeautify()<cr>
 autocmd FileType css noremap <buffer> <c-f> :call CSSBeautify()<cr>
+
+autocmd FileType javascript vnoremap <buffer>  <c-f> :call RangeJsBeautify()<cr>
+autocmd FileType html vnoremap <buffer> <c-f> :call RangeHtmlBeautify()<cr>
+autocmd FileType html vnoremap <buffer> <c-j> :call RangeJsBeautify()<cr>
+autocmd FileType css vnoremap <buffer> <c-f> :call RangeCSSBeautify()<cr>
 
 " Ignore some folders and files for CtrlP indexing
 let g:ctrlp_custom_ignore = '\v[\/](node_modules|target|dist)|(\.(swp|ico|git|svn))$'
@@ -431,13 +463,17 @@ let g:tagbar_ctags_bin='/usr/local/bin/ctags'
 
 "Set cross highlight to locate the cursor 
 ":hi CursorLine   cterm=NONE ctermbg=gray ctermfg=white guibg=darkred guifg=white
-":hi CursorLine   cterm=NONE ctermbg=gray ctermfg=white guibg=darkred guifg=white
 :hi CursorColumn cterm=NONE ctermbg=gray guibg=darkred guifg=white
-:hi CursorColumn cterm=NONE ctermbg=gray guibg=darkred guifg=white
-:nnoremap <Leader>c :set cursorline! cursorcolumn!<CR>
+nnoremap <Leader><Leader>c :set cursorline! cursorcolumn!<CR>
 
+"Tag bar
 nnoremap <silent> <F9> :TagbarToggle<CR>
-"
+
+"EasyMotion
+let g:EasyMotion_smartcase = 1
+nmap w <Plug>(easymotion-bd-w)
+nmap f <Plug>(easymotion-bd-f2)
+
 " automatical load configuration
 augroup myvimrc
     au!
@@ -445,7 +481,7 @@ augroup myvimrc
 augroup END
 
 " Copy current file path to clipboard
-nmap <Leader>j :let @"=expand("%")<CR>
+nmap <Leader>j :let @"=expand("%:t")<CR>
 
 " Bind C-t for Clear all cache and open CtrlP
 nnoremap <silent> <C-t> :ClearAllCtrlPCache<CR>\|:CtrlP<CR>
