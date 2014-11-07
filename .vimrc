@@ -3,19 +3,15 @@
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Disable Macbook touchpad in iTerm 2
 set mouse=a 
+set relativenumber
+"hi LineNr  ctermfg=cyan ctermbg=black
+"hi NonText ctermfg=white ctermbg=white
 
-" Set Line height
-set lsp=5
-
-set nonumber
-" Show relative row number for quick motion
-"set relativenumber
-"autocmd vimenter * :set numberwidth=1
-"hi LineNr ctermfg=white ctermbg=brown
+hi MatchParen cterm=underline ctermbg=none ctermfg=none
 
 " Change Vim cursor shape in command mode and insert mode
-let &t_SI = "\<Esc>]50;CursorShape=1\x7"
-let &t_EI = "\<Esc>]50;CursorShape=0\x7"
+autocmd vimenter * let &t_SI = "\<Esc>]50;CursorShape=1\x7"
+autocmd vimenter * let &t_EI = "\<Esc>]50;CursorShape=0\x7"
 
 " Sets how many lines of history VIM has to remember
 set history=700
@@ -35,10 +31,15 @@ let g:mapleader = ";"
 " Fast saving
 nmap <leader>w :w!<cr>
 
-
 " :W sudo saves the file 
 " (useful for handling the permission-denied error)
-cmap W w !sudo tee > /dev/null %
+"cmap W w !sudo tee > /dev/null %
+cmap W w
+nmap <silent> <leader>ev :e $MYVIMRC<CR>
+nmap <silent> <leader>sv :so $MYVIMRC<CR>
+
+
+nnoremap <Leader>s :%s/\<<C-r><C-w>\>/
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => VIM user interface
@@ -51,6 +52,7 @@ set wildmenu
 
 " Ignore compiled files
 set wildignore=*.o,*~,*.pyc,.git\*,.hg\*,.svn\*
+let g:syntastic_javascript_jshint_args= '-ddc  $HOME . /.jshintrc'
 
 "Always show current position
 set ruler
@@ -95,25 +97,24 @@ set t_vb=
 set tm=500
 
 " Add a bit extra margin to the left
-set foldcolumn=4
+set foldcolumn=0
 hi foldcolumn ctermbg=none
-hi NonText ctermfg=red
+hi NonText ctermfg=white
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Colors and Fonts
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Enable syntax highlighting
 syntax enable
-set background=light
-colorscheme solarized
+"set background=light
 
 "Verticle split char
-set fillchars-=vert:\|  
+set fillchars=vert:\   
 
 "hide tab bar when vim start
-autocmd vimenter * :set showtabline=0
+autocmd vimenter * :set showtabline=2
 
-hi VertSplit ctermfg=red ctermbg=none cterm=none
+hi VertSplit ctermfg=DarkGray ctermbg=none cterm=none
 
 " Set utf8 as standard encoding and en_US as the standard language
 set encoding=utf8
@@ -121,7 +122,6 @@ set encoding=utf8
 " Use Unix as the standard file type
 set ffs=unix,dos,mac
 
-set guifont=Source\ Code\ Pro\ Light:h10
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Files, backups and undo
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -143,7 +143,7 @@ set smarttab
 set shiftwidth=4
 set tabstop=4
 
-" Linebreak on 500 characters
+" Linebreak on 120 characters
 set lbr
 set tw=120
 
@@ -180,6 +180,13 @@ map <C-k> <C-W>k
 map <C-h> <C-W>h
 map <C-l> <C-W>l
 
+" Let CR useful
+nmap <CR> o
+
+" Move current line up and down
+nnoremap mk :m .-2<cr>
+nnoremap mj :m+<cr>
+
 " Close the current buffer
 map <leader>bd :Bclose<cr>
 
@@ -202,16 +209,16 @@ map <leader>cd :cd %:p:h<cr>:pwd<cr>
 
 " Specify the behavior when switching between buffers 
 try
-  set switchbuf=useopen,usetab,newtab
-  set stal=2
+    set switchbuf=useopen,usetab,newtab
+    set stal=2
 catch
 endtry
 
 " Return to last edit position when opening files (You want this!)
 autocmd BufReadPost *
-     \ if line("'\"") > 0 && line("'\"") <= line("$") |
-     \   exe "normal! g`\"" |
-     \ endif
+            \ if line("'\"") > 0 && line("'\"") <= line("$") |
+            \   exe "normal! g`\"" |
+            \ endif
 " Remember info about open buffers on close
 set viminfo^=%
 
@@ -223,7 +230,7 @@ set viminfo^=%
 set laststatus=2
 
 " Format the status line
-set statusline=\ %{HasPaste()}%m%r%h\ \ \ %=\ %c\ \ \ Line:\ %l/%L\ %y
+"set statusline=\ %{HasPaste()}%m%r%h\ \ \ %=\ %c\ \ \ Line:\ %l/%L\ %y 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Editing mappings
@@ -238,17 +245,17 @@ vmap <M-j> :m'>+<cr>`<my`>mzgv`yo`z
 vmap <M-k> :m'<-2<cr>`>my`<mzgv`yo`z
 
 if has("mac") || has("macunix")
-  nmap <D-j> <M-j>
-  nmap <D-k> <M-k>
-  vmap <D-j> <M-j>
-  vmap <D-k> <M-k>
+    nmap <D-j> <M-j>
+    nmap <D-k> <M-k>
+    vmap <D-j> <M-j>
+    vmap <D-k> <M-k>
 endif
 
 " Delete trailing white space on save, useful for Python and CoffeeScript ;)
 func! DeleteTrailingWS()
-  exe "normal mz"
-  %s/\s\+$//ge
-  exe "normal `z"
+    exe "normal mz"
+    %s/\s\+$//ge
+    exe "normal `z"
 endfunc
 autocmd BufWrite *.py :call DeleteTrailingWS()
 autocmd BufWrite *.coffee :call DeleteTrailingWS()
@@ -355,22 +362,22 @@ endfunction
 " Don't close window, when deleting a buffer
 command! Bclose call <SID>BufcloseCloseIt()
 function! <SID>BufcloseCloseIt()
-   let l:currentBufNum = bufnr("%")
-   let l:alternateBufNum = bufnr("#")
+    let l:currentBufNum = bufnr("%")
+    let l:alternateBufNum = bufnr("#")
 
-   if buflisted(l:alternateBufNum)
-     buffer #
-   else
-     bnext
-   endif
+    if buflisted(l:alternateBufNum)
+        buffer #
+    else
+        bnext
+    endif
 
-   if bufnr("%") == l:currentBufNum
-     new
-   endif
+    if bufnr("%") == l:currentBufNum
+        new
+    endif
 
-   if buflisted(l:currentBufNum)
-     execute("bdelete! ".l:currentBufNum)
-   endif
+    if buflisted(l:currentBufNum)
+        execute("bdelete! ".l:currentBufNum)
+    endif
 endfunction
 
 " Window resizing mappings /*{{{*/
@@ -380,18 +387,18 @@ nnoremap <S-Left> :normal <c-r>=Resize('<')<CR><CR>
 nnoremap <S-Right> :normal <c-r>=Resize('>')<CR><CR>
 
 function! Resize(dir)
-  if ('+' == a:dir ) 
-    return "5\<c-v>\<c-w>-"
-  elseif ('-' == a:dir)
-    return "5\<c-v>\<c-w>+"
-  elseif ('<' == a:dir ) 
-    return "5\<c-v>\<c-w><"
-  elseif ('>' == a:dir )
-    return "5\<c-v>\<c-w>>"
-  else
-    echo "oops. check your ~/.vimrc"
-    return ""
-  endif
+    if ('+' == a:dir ) 
+        return "5\<c-v>\<c-w>-"
+    elseif ('-' == a:dir)
+        return "5\<c-v>\<c-w>+"
+    elseif ('<' == a:dir ) 
+        return "5\<c-v>\<c-w><"
+    elseif ('>' == a:dir )
+        return "5\<c-v>\<c-w>>"
+    else
+        echo "oops. check your ~/.vimrc"
+        return ""
+    endif
 endfunction
 " /*}}}*/ 
 
@@ -411,9 +418,8 @@ Plugin 'Lokaltog/vim-easymotion'
 Plugin 'maksimr/vim-jsbeautify'
 Plugin 'scrooloose/nerdcommenter'
 Plugin 'scrooloose/nerdtree'
-Plugin 'altercation/vim-colors-solarized'
 Plugin 'scrooloose/syntastic'
-Plugin 'SQLUtilities'
+"Plugin 'SQLUtilities'
 Plugin 'junegunn/goyo.vim'
 Plugin 'jelera/vim-javascript-syntax'
 Plugin 'ervandew/supertab'
@@ -424,6 +430,13 @@ Plugin 'marijnh/tern_for_vim'
 Plugin 'ramitos/jsctags'
 Plugin 'fidian/hexmode'
 Plugin 'vim-scripts/loremipsum'
+"Plugin 'derekwyatt/vim-scala'
+"Plugin 'Lokaltog/powerline', {'rtp': 'powerline/bindings/vim/'}
+"Plugin 'tpope/vim-markdown'
+Plugin 'bling/vim-airline'
+Plugin 'ntpeters/vim-better-whitespace'
+Plugin 'Chiel92/vim-autoformat'
+
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
@@ -433,9 +446,12 @@ filetype plugin indent on    " required
 autocmd vimenter * NERDTree
 autocmd vimenter * if !argc() | NERDTree | endif
 map <F3> :NERDTreeToggle<CR>
-autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
-let NERDTreeShowHidden=1 
-let NERDTreeStatusline="%{matchstr(getline('.'), '\\s\\zs\\w\\(.*\\)')}"
+"autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
+let NERDTreeShowHidden=1
+let NERDTreeIgnore = ['.git$']
+let NERDTreeIgnore += ['^\.DS_Store$']
+
+"let NERDTreeStatusline="%{matchstr(getline('.'), '\\s\\zs\\w\\(.*\\)')}"
 
 " JsBeautify Config
 map <c-f> :call JsBeautify()<cr>
@@ -472,16 +488,49 @@ nnoremap <silent> <F9> :TagbarToggle<CR>
 "EasyMotion
 let g:EasyMotion_smartcase = 1
 nmap w <Plug>(easymotion-bd-w)
-nmap f <Plug>(easymotion-bd-f2)
+nmap f <Plug>(easymotion-bd-f)
+nmap F <Plug>(easymotion-bd-2f)
 
 " automatical load configuration
 augroup myvimrc
     au!
-    au BufWritePost .vimrc,_vimrc,vimrc,.gvimrc,_gvimrc,gvimrc so $MYVIMRC 
+    au BufWritePost .vimrc,_vimrc,vimrc,.gvimrc,_gvimrc,gvimrc nested :so $MYVIMRC 
 augroup END
 
-" Copy current file path to clipboard
-nmap <Leader>j :let @"=expand("%:t")<CR>
 
 " Bind C-t for Clear all cache and open CtrlP
 nnoremap <silent> <C-t> :ClearAllCtrlPCache<CR>\|:CtrlP<CR>
+
+"let g:Powerline_symbols = 'fancy'
+"set t_Co=256
+"set fillchars+=stl:\ ,stlnc:\ 
+"set term=xterm-256color
+"set termencoding=utf-8
+"set noshowmode
+
+
+let g:syntastic_check_on_open = 1
+let g:syntastic_enable_balloons = 0
+let g:syntastic_auto_jump = 0
+let g:syntastic_error_symbol = 'e:'
+let g:syntastic_warning_symbol = 'w:'
+if file_readable('.jshintrc')
+    let g:syntastic_javascript_jshint_args = '--config .jshintrc'
+else
+    let g:syntastic_javascript_jshint_args = '--config ~/.jshintrc'
+endif
+
+let g:syntastic_scss_checkers = ['scss_lint']
+let g:syntastic_javascript_checkers = ['jshint']
+let g:syntastic_java_javac_classpath = "./lib/*.jar\n./src"
+
+
+autocmd BufNewFile,BufReadPost *.md set filetype=markdown
+
+
+let g:airline#extensions#tabline#enabled = 1
+
+
+
+
+
